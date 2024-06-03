@@ -1,43 +1,64 @@
 from rest_framework import status
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from .serializers import BooksSerializer
+from rest_framework.permissions import IsAuthenticated
+from .serializers import BookSerializer
 from ..models import Books
 
 
 # Create your views here.
 
-class BooksListView(APIView):
-    def get(self, request, pk=None):
-        if pk:
-            book_obj = get_object_or_404(Books, pk=pk)
-            serializer = BooksSerializer(book_obj)
-            return Response({'data': serializer.data, 'message': 'Retrieved successfully'}, status=status.HTTP_200_OK)
-        else:
-            book_obj = Books.objects.all()
-            serializer = BooksSerializer(book_obj, many=True)
-            return Response({'data': serializer.data, 'message': 'Retrieved successfully'}, status=status.HTTP_200_OK)
-        
+class BookListView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            book = Books.objects.all()
+            serializer = BookSerializer(book, many=True)
+            return Response(serializer.data)
+        except:
+            return Response({'msg':'Book list not found'})
+
+
+class BooksView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, pk):
+        try:
+            book = Books.objects.get(id=pk)
+            serializer = BookSerializer(book, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({'msg': 'Book details not found'})
+
+
     def post(self, request):
-        serializer = BooksSerializer(data=request.data)
-        if serializer.is_valid():
+        data = request.data
+        serializer = BookSerializer(data=data)
+        if serializer.is_valid(raise_exception = True):
             serializer.save()
-            return Response({'data': serializer.data, 'message': 'Data inserted successfully'}, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     
     def put(self, request, pk):
-        book_obj = get_object_or_404(Books, pk=pk)
-        serializer = BooksSerializer(book_obj, data=request.data)
-        if serializer.is_valid():
+        book = Books.objects.get(id=pk)
+        serializer = BookSerializer(book, data=request.data)
+        if serializer.is_valid(raise_exception= True):
             serializer.save()
-            return Response({'data': serializer.data, 'message': 'Data Updated successfully'}, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    
     def delete(self, request, pk):
-        book_obj = get_object_or_404(Books, pk=pk)
-        book_obj.delete()
-        return Response({'message': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        try:
+            book = Books.objects.get(id=pk)
+            book.delete()
+            return Response({'msg': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'msg': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 

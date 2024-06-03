@@ -4,7 +4,7 @@ from ..models import Books
 
 # Create your serializers here.
 
-class BooksSerializer(serializers.ModelSerializer):
+class BookSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Books

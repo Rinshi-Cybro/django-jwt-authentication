@@ -5,7 +5,41 @@ from django.shortcuts import get_object_or_404
 from ..models import StudentList, Departments, Branches
 from .serializers import StudentSerializer, BranchSerializer, DepartmentSerializer
 
-# Create your views here.
+# Create your views here.  
+
+class StudentListView(APIView):
+    def get(self, request, pk=None):
+        if pk:
+            stud_obj = get_object_or_404(StudentList, pk=pk)
+            serializer = StudentSerializer(stud_obj)
+            return Response({'data': serializer.data, 'message': 'Retrieved successfully'}, status=status.HTTP_200_OK)
+        else:
+            stud_obj = StudentList.objects.all()
+            serializer = StudentSerializer(stud_obj, many=True)
+            return Response({'data': serializer.data, 'message': 'Retrieved successfully'}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = StudentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'data': serializer.data, 'message': 'Inserted successfully'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        stud_obj = get_object_or_404(StudentList, pk=pk)
+        serializer = StudentSerializer(stud_obj, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'data': serializer.data, 'message': 'Updated successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        stud_obj = get_object_or_404(StudentList, pk=pk)
+        stud_obj.delete()
+        return Response({'message': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+
 
 class BranchListView(APIView):
     # check the brach 'id' (pk) is exists or not
@@ -71,53 +105,6 @@ class DepartmentListView(APIView):
         depart_obj = get_object_or_404(Departments, pk=pk)
         depart_obj.delete()
         return Response({'message': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-    
-
-class StudentListView(APIView):
-    def get(self, request, pk=None):
-        if pk:
-            stud_obj = get_object_or_404(StudentList, pk=pk)
-            serializer = StudentSerializer(stud_obj)
-            return Response({'data': serializer.data, 'message': 'Student data retrieved successfully'}, status=status.HTTP_200_OK)
-        else:
-            stud_obj = StudentList.objects.all()
-            serializer = StudentSerializer(stud_obj, many=True)
-            return Response({'data': serializer.data, 'message': 'Students data retrieved successfully'}, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = StudentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'data': serializer.data, 'message': 'Student data inserted successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request, pk):
-        stud_obj = get_object_or_404(StudentList, pk=pk)
-        serializer = StudentSerializer(stud_obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'data': serializer.data, 'message': 'Student data updated successfully'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        stud_obj = get_object_or_404(StudentList, pk=pk)
-        stud_obj.delete()
-        return Response({'message': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
